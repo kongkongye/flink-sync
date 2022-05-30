@@ -2,7 +2,7 @@
 
 flink同步库，主要功能是表同步，格式基于[debezium](https://debezium.io/)。
 
-数据流：`源数据库 => kafka => flink => 目标数据库`
+![数据流](https://github.com/kongkongye/flink-sync/blob/main/flink-sync.png?raw=true)
 
 ## 快速使用
 
