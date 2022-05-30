@@ -13,6 +13,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 public class SimpleBatchStatementExecutor implements JdbcBatchStatementExecutor<JSONObject> {
@@ -154,10 +156,16 @@ public class SimpleBatchStatementExecutor implements JdbcBatchStatementExecutor<
      * 就是把?用实际变量替换
      */
     private String fillParams(String sql, List<String> params) {
-        for (String param : params) {
-            sql = sql.replaceFirst("\\?", param);
+        Pattern pattern = Pattern.compile("\\?");
+        Matcher matcher = pattern.matcher(sql);
+        StringBuffer sb = new StringBuffer();
+        int i = 0;
+        while (matcher.find()) {
+            matcher.appendReplacement(sb, params.get(i));
+            i++;
         }
-        return sql;
+        matcher.appendTail(sb);
+        return sb.toString();
     }
 
     /**
