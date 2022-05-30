@@ -1,0 +1,28 @@
+{
+  "from": {
+    "type": "kafka",
+    "bootstrapServers": "localhost:9092",
+    "topic": "local.demo.orders",
+    "startMethod": "earliest"
+  },
+  "to": {
+    "mode": "retract",
+    "url": "jdbc:jtds:sqlserver://localhost:1433/demo",
+    "username": "root",
+    "password": "root",
+    "schema": "dbo",
+    "table": "orders_sink",
+    "ids": "order_no",
+    "columns": "create_user_id, removed",
+    "converters": [
+      {
+        "columns": "*",
+        "converter": "datetime",
+        "config": {
+          "offset": -28800000,
+          "timezone": "UTC+8"
+        }
+      }
+    ]
+  }
+}

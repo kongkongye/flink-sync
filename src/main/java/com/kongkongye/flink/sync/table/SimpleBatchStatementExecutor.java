@@ -1,0 +1,211 @@
+package com.kongkongye.flink.sync.table;
+
+import com.alibaba.fastjson2.JSONObject;
+import com.kongkongye.flink.sync.table.config.SyncConfig;
+import com.kongkongye.flink.sync.table.dialect.JdbcDialect;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.flink.connector.jdbc.internal.executor.JdbcBatchStatementExecutor;
+
+import javax.annotation.Nullable;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+@Slf4j
+public class SimpleBatchStatementExecutor implements JdbcBatchStatementExecutor<JSONObject> {
+    private final SyncConfig config;
+    private final JdbcDialect dialect;
+    private final List<JSONObject> batch;
+    private transient Statement statement;
+
+    public SimpleBatchStatementExecutor(SyncConfig config, JdbcDialect dialect) {
+        this.config = config;
+        this.dialect = dialect;
+        this.batch = new ArrayList<>();
+    }
+
+    @Override
+    public void prepareStatements(Connection connection) throws SQLException {
+        this.statement = connection.createStatement();
+    }
+
+    @Override
+    public void addToBatch(JSONObject record) {
+        batch.add(record);
+    }
+
+    @Override
+    public void executeBatch() throws SQLException {
+        if (!batch.isEmpty()) {
+            for (JSONObject e : batch) {
+                //构建sql语句
+                for (String sql : buildSqls(e)) {
+                    //添加batch
+                    statement.addBatch(sql);
+                    log.debug("[sql]{}", sql);
+                }
+            }
+            statement.executeBatch();
+            batch.clear();
+        }
+    }
+
+    @Override
+    public void closeStatements() throws SQLException {
+        if (statement != null) {
+            statement.close();
+            statement = null;
+        }
+    }
+
+    /**
+     * 获取插入语句
+     */
+    private String getInsertSql(JSONObject e) {
+        String sqlWithPlaceholders = dialect.getInsertSql();
+
+        JSONObject after = e.getJSONObject("after");
+
+        //params
+        List<String> params = new ArrayList<>();
+        for (String column : dialect.getInsertColumns(config.getTo().getIdList(), config.getTo().getColumnList())) {
+            Object value = after.get(column);
+            String dataType = config.getTo().getTypes().get(column);
+            String wrappedParameter = dialect.wrapParameter(dataType, value);
+            params.add(wrappedParameter);
+        }
+
+        //填充变量
+        return fillParams(sqlWithPlaceholders, params);
+    }
+
+    /**
+     * 获取更新语句
+     */
+    private String getUpdateSql(JSONObject e) {
+        String sqlWithPlaceholders = dialect.getUpdateSql();
+
+        JSONObject after = e.getJSONObject("after");
+
+        //params
+        List<String> params = new ArrayList<>();
+        for (String column : dialect.getUpdateColumns(config.getTo().getIdList(), config.getTo().getColumnList())) {
+            Object value = after.get(column);
+            String dataType = config.getTo().getTypes().get(column);
+            String wrappedParameter = dialect.wrapParameter(dataType, value);
+            params.add(wrappedParameter);
+        }
+
+        //填充变量
+        return fillParams(sqlWithPlaceholders, params);
+    }
+
+    /**
+     * 获取删除语句
+     */
+    private String getDeleteSql(JSONObject e, boolean before) {
+        String sqlWithPlaceholders = dialect.getDeleteSql();
+
+        JSONObject json = e.getJSONObject(before ? "before" : "after");
+
+        //params
+        List<String> params = new ArrayList<>();
+        for (String column : dialect.getDeleteColumns(config.getTo().getIdList(), config.getTo().getColumnList())) {
+            Object value = json.get(column);
+            String dataType = config.getTo().getTypes().get(column);
+            String wrappedParameter = dialect.wrapParameter(dataType, value);
+            params.add(wrappedParameter);
+        }
+
+        //填充变量
+        return fillParams(sqlWithPlaceholders, params);
+    }
+
+    /**
+     * 获取upsert语句
+     */
+    @Nullable
+    private String getUpsertSql(JSONObject e) {
+        String sqlWithPlaceholders = dialect.getUpsertSql();
+        if (sqlWithPlaceholders == null) {
+            return null;
+        }
+
+        JSONObject after = e.getJSONObject("after");
+
+        //params
+        List<String> columns = dialect.getUpsertColumns(config.getTo().getIdList(), config.getTo().getColumnList());
+        for (String column : columns) {
+            Object value = after.get(column);
+            String dataType = config.getTo().getTypes().get(column);
+            String wrappedParameter = dialect.wrapParameter(dataType, value);
+            columns.add(wrappedParameter);
+        }
+
+        //填充变量
+        return fillParams(sqlWithPlaceholders, columns);
+    }
+
+    /**
+     * 填充变量
+     * 就是把?用实际变量替换
+     */
+    private String fillParams(String sql, List<String> params) {
+        for (String param : params) {
+            sql = sql.replaceFirst("\\?", param);
+        }
+        return sql;
+    }
+
+    /**
+     * 构建sql语句
+     */
+    private List<String> buildSqls(JSONObject e) {
+        List<String> sqls = new ArrayList<>();
+        if (Objects.equals(e.getString("op"), "c") || Objects.equals(e.getString("op"), "r")) {//新增
+            switch (config.getTo().getMode()) {
+                case plain:
+                    sqls.add(getInsertSql(e));
+                    break;
+                case upsert:
+                    String upsertSql = getUpsertSql(e);
+                    if (upsertSql == null) {
+                        throw new RuntimeException("upsert mode is not supported");
+                    }
+                    sqls.add(upsertSql);
+                    break;
+                case retract:
+                    sqls.add(getDeleteSql(e, false));
+                    sqls.add(getInsertSql(e));
+                    break;
+                default:
+                    throw new RuntimeException("unsupported mode: " + config.getTo().getMode());
+            }
+        } else if (Objects.equals(e.getString("op"), "u")) {//更新
+            switch (config.getTo().getMode()) {
+                case plain:
+                    sqls.add(getUpdateSql(e));
+                    break;
+                case upsert:
+                    String upsertSql = getUpsertSql(e);
+                    if (upsertSql == null) {
+                        throw new RuntimeException("upsert mode is not supported");
+                    }
+                    sqls.add(upsertSql);
+                    break;
+                case retract:
+                    sqls.add(getDeleteSql(e, false));
+                    sqls.add(getInsertSql(e));
+                    break;
+                default:
+                    throw new RuntimeException("unsupported mode: " + config.getTo().getMode());
+            }
+        } else if (Objects.equals(e.getString("op"), "d")) {//删除
+            sqls.add(getDeleteSql(e, true));
+        }
+        return sqls;
+    }
+}
