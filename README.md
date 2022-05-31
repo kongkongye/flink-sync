@@ -32,7 +32,8 @@ mvn clean package -DskipTests
 
 在flink web ui界面上传，参数`并行度`填个合适的值，
 更高的并行度就同步更快（比如cpu核数），
-程序参数填`--file <file>`，file是文件的绝对路径。
+程序参数填`--file <file>`，file是文件的绝对路径，
+`--env <local/prod>`，默认prod，local时会创建本地带web ui的环境，prod时获取服务器环境。
 
 文件格式可以参考`example/table_sync`目录下的json文件。
 
@@ -55,7 +56,8 @@ mvn clean package -DskipTests
 
 在flink web ui界面上传，参数`并行度`填个合适的值，
 更高的并行度就同步更快（比如cpu核数），
-程序参数填`--file <file>`，file是文件的绝对路径。
+程序参数填`--file <file>`，file是文件的绝对路径，
+`--env <local/prod>`，默认prod，local时会创建本地带web ui的环境，prod时获取服务器环境。
 
 文件格式可以参考`example/sql_sync`目录下的sql文件。
 
