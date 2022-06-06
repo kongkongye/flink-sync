@@ -161,7 +161,7 @@ public class SimpleBatchStatementExecutor implements JdbcBatchStatementExecutor<
         StringBuffer sb = new StringBuffer();
         int i = 0;
         while (matcher.find()) {
-            matcher.appendReplacement(sb, params.get(i));
+            matcher.appendReplacement(sb, Matcher.quoteReplacement(params.get(i)));
             i++;
         }
         matcher.appendTail(sb);
