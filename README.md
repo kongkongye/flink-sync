@@ -4,6 +4,8 @@ flink同步库，主要功能是表同步，格式基于[debezium](https://debez
 
 ![数据流](https://github.com/kongkongye/flink-sync/blob/main/flink-sync.png?raw=true)
 
+PS: 不要只看文档，要不然项目可能跑不起来，很多地方不清晰，要文档跟代码一起看，反正代码量也不多。
+
 ## 快速使用
 
 ### 前置操作
