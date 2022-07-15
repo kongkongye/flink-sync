@@ -1,5 +1,6 @@
 package com.kongkongye.flink.sync.sql;
 
+import com.kongkongye.flink.sync.func.ToDecimalSafelyFunc;
 import org.apache.commons.io.FileUtils;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
@@ -26,6 +27,7 @@ public class SqlSyncJob {
         else environment = StreamExecutionEnvironment.getExecutionEnvironment();
         StreamTableEnvironment tableEnvironment = StreamTableEnvironment.create(environment);
         tableEnvironment.getConfig().getConfiguration().setString("pipeline.name", "[sql同步]" + file);
+        tableEnvironment.createFunction("toDecimalSafely", ToDecimalSafelyFunc.class);
 
         String[] sqls = content.split("----");
         for (String sql : sqls) {
