@@ -52,8 +52,8 @@ public class ToConfig implements Serializable {
                 try (PreparedStatement ps = connection.prepareStatement(columnTypeSql)) {
                     try (ResultSet rs = ps.executeQuery()) {
                         while (rs.next()) {
-                            String columnType = rs.getString(1).toLowerCase();
-                            types.put(column, columnType);
+                            String columnType = rs.getString(1);
+                            types.put(column, dialect.getColumnType(columnType));
                         }
                     }
                 }

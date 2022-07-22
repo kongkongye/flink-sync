@@ -18,7 +18,7 @@ public class DatetimeConverter implements Converter<Long, String> {
 
     @Override
     public boolean canHandle(String dataType, Object value) {
-        return value instanceof Long && "datetime".equalsIgnoreCase(dataType);
+        return value instanceof Long && ("datetime".equalsIgnoreCase(dataType) || "timestamp".equalsIgnoreCase(dataType));
     }
 
     @Override

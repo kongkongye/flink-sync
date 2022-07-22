@@ -21,7 +21,7 @@ public abstract class AbstractJdbcDialect implements JdbcDialect {
     public String getInsertSql() {
         List<String> allColumns = new ArrayList<>(config.getTo().getIdList());
         allColumns.addAll(config.getTo().getColumnList());
-        return "insert into " + config.getTo().getTable() + " ( " + SyncUtil.getFieldsStr(allColumns) + " ) values (" + SyncUtil.getPlaceholdersStr(allColumns.size()) + ")";
+        return "insert into " + q(config.getTo().getTable()) + " ( " + SyncUtil.getFieldsStr(allColumns, getQuote()) + " ) values (" + SyncUtil.getPlaceholdersStr(allColumns.size()) + ")";
     }
 
     /**
@@ -29,7 +29,7 @@ public abstract class AbstractJdbcDialect implements JdbcDialect {
      */
     @Override
     public String getUpdateSql() {
-        return "update " + config.getTo().getTable() + " set " + SyncUtil.getFieldPlaceholdersStr(config.getTo().getColumnList(), ",") + " where " + SyncUtil.getFieldPlaceholdersStr(config.getTo().getIdList(), " and ");
+        return "update " + q(config.getTo().getTable()) + " set " + SyncUtil.getFieldPlaceholdersStr(config.getTo().getColumnList(), ",", getQuote()) + " where " + SyncUtil.getFieldPlaceholdersStr(config.getTo().getIdList(), " and ", getQuote());
     }
 
     /**
@@ -37,7 +37,7 @@ public abstract class AbstractJdbcDialect implements JdbcDialect {
      */
     @Override
     public String getDeleteSql() {
-        return "delete from " + config.getTo().getTable() + " where " + SyncUtil.getFieldPlaceholdersStr(config.getTo().getIdList(), " and ");
+        return "delete from " + q(config.getTo().getTable()) + " where " + SyncUtil.getFieldPlaceholdersStr(config.getTo().getIdList(), " and ", getQuote());
     }
 
     /**

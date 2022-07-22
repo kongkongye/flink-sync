@@ -38,6 +38,7 @@ under the License.
         <log4j.version>2.17.2</log4j.version>
         <slf4j-api.version>1.7.36</slf4j-api.version>
         <mysql.connector.version>8.0.29</mysql.connector.version>
+        <postgres.connector.version>42.4.0</postgres.connector.version>
         <lombok.version>1.18.24</lombok.version>
         <jtds.version>1.3.1</jtds.version>
         <fastjson.version>2.0.7</fastjson.version>
@@ -121,6 +122,12 @@ under the License.
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>${mysql.connector.version}</version>
+            <scope>${runtime.scope}</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgres.connector.version}</version>
             <scope>${runtime.scope}</scope>
         </dependency>
         <dependency>

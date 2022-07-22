@@ -11,8 +11,9 @@ public class SyncUtil {
      *
      * @return id, name
      */
-    public static String getFieldsStr(List<String> columns) {
-        return String.join(",", columns);
+    public static String getFieldsStr(List<String> columns, String quote) {
+        List<String> collect = columns.stream().map(e -> quote + e + quote).collect(Collectors.toList());
+        return String.join(",", collect);
     }
 
     /**
@@ -34,8 +35,8 @@ public class SyncUtil {
      *
      * @return id=?,name=?
      */
-    public static String getFieldPlaceholdersStr(List<String> columns, String separator) {
-        List<String> placeholderList = columns.stream().map(e -> e+"=?").collect(Collectors.toList());
+    public static String getFieldPlaceholdersStr(List<String> columns, String separator, String quote) {
+        List<String> placeholderList = columns.stream().map(e -> quote+e+quote+"=?").collect(Collectors.toList());
         return String.join(separator, placeholderList);
     }
 }

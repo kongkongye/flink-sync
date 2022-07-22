@@ -29,6 +29,11 @@ public class SqlserverDialect extends AbstractJdbcDialect {
     }
 
     @Override
+    public String getQuote() {
+        return "\"";
+    }
+
+    @Override
     public boolean canHandle(String url) {
         return url.startsWith("jdbc:jtds:sqlserver");
     }

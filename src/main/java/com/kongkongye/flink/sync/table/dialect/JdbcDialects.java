@@ -9,6 +9,7 @@ public class JdbcDialects {
 
     static {
         register(new MysqlDialect());
+        register(new PgsqlDialect());
         register(new SqlserverDialect());
     }
 

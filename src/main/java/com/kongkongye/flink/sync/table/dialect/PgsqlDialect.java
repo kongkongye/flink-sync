@@ -9,12 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class MysqlDialect extends AbstractJdbcDialect {
-    public static final String NAME = "mysql";
+public class PgsqlDialect extends AbstractJdbcDialect {
+    public static final String NAME = "pgsql";
     public static final String Q = "'";
 
     public static final Set<String> QUOTE_TYPES = Sets.newHashSet(
-            "date", "datetime", "timestamp",
+            "date", "timestamp", "character",
             "varchar", "char", "text"
     );
 
@@ -25,12 +25,12 @@ public class MysqlDialect extends AbstractJdbcDialect {
 
     @Override
     public String getQuote() {
-        return "`";
+        return "\"";
     }
 
     @Override
     public boolean canHandle(String url) {
-        return url.startsWith("jdbc:mysql");
+        return url.startsWith("jdbc:postgresql");
     }
 
     @Override
@@ -48,8 +48,19 @@ public class MysqlDialect extends AbstractJdbcDialect {
     }
 
     @Override
+    public String getColumnType(String dataType) {
+        if (dataType.startsWith("timestamp")) {
+            return "timestamp";
+        }
+        if (dataType.startsWith("character")) {
+            return "character";
+        }
+        return dataType;
+    }
+
+    @Override
     public String getDriverName() {
-        return "com.mysql.cj.jdbc.Driver";
+        return "org.postgresql.Driver";
     }
 
     /**
@@ -60,7 +71,7 @@ public class MysqlDialect extends AbstractJdbcDialect {
         List<String> allColumns = new ArrayList<>(config.getTo().getIdList());
         allColumns.addAll(config.getTo().getColumnList());
         return "insert into " + q(config.getTo().getTable()) + " ( " + SyncUtil.getFieldsStr(allColumns, getQuote()) + " ) values (" + SyncUtil.getPlaceholdersStr(allColumns.size()) + " ) "
-                + " ON DUPLICATE KEY UPDATE " + SyncUtil.getFieldPlaceholdersStr(allColumns, ",", getQuote());
+                + " ON CONFLICT ("+SyncUtil.getFieldsStr(config.getTo().getIdList(), getQuote())+") do update " + SyncUtil.getFieldPlaceholdersStr(allColumns, ",", getQuote());
     }
 
     @Override

@@ -19,6 +19,11 @@ public interface JdbcDialect extends Serializable {
     String getName();
 
     /**
+     * 获取对象引号
+     */
+    String getQuote();
+
+    /**
      * 能否处理该url
      */
     boolean canHandle(String url);
@@ -37,6 +42,14 @@ public interface JdbcDialect extends Serializable {
      * 获取列类型的sql
      */
     String getColumnTypeSql(String columnName);
+
+    /**
+     * 获取列类型
+     * @param dataType 数据库返回的类型值
+     */
+    default String getColumnType(String dataType) {
+        return dataType;
+    }
 
     /**
      * 带有占位符的插入语句
@@ -76,4 +89,8 @@ public interface JdbcDialect extends Serializable {
      */
     @Nonnull
     String wrapParameter(String dataType, @Nullable Object value);
+
+    default String q(String objectName) {
+        return getQuote() + objectName + getQuote();
+    }
 }
