@@ -68,8 +68,8 @@ public class TableSyncJob {
         else environment = StreamExecutionEnvironment.getExecutionEnvironment();
 
         JdbcExecutionOptions executionOptions = new JdbcExecutionOptions.Builder()
-                .withBatchIntervalMs(3000)
-                .withBatchSize(1000)
+                .withBatchIntervalMs(1000)
+                .withBatchSize(100)
                 .withMaxRetries(3)
                 .build();
 

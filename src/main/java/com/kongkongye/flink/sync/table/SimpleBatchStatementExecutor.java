@@ -47,7 +47,7 @@ public class SimpleBatchStatementExecutor implements JdbcBatchStatementExecutor<
                 for (String sql : buildSqls(e)) {
                     //添加batch
                     statement.addBatch(sql);
-                    log.debug("[sql]{}", sql);
+//                    log.debug("[sql]{}", sql);
                 }
             }
             statement.executeBatch();
