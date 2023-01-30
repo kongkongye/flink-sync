@@ -18,7 +18,7 @@ public class DateConverter implements Converter<Object, String> {
 
     @Override
     public boolean canHandle(String dataType, Object value) {
-        return "date".equalsIgnoreCase(dataType);
+        return "datetime".equalsIgnoreCase(dataType);
     }
 
     @Override
