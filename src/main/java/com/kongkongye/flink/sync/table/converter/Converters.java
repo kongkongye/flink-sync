@@ -1,5 +1,6 @@
 package com.kongkongye.flink.sync.table.converter;
 
+import com.kongkongye.flink.sync.table.converter.common.DateConverter;
 import com.kongkongye.flink.sync.table.converter.common.DatetimeConverter;
 
 import java.util.HashMap;
@@ -11,6 +12,7 @@ public class Converters {
 
     static {
         register(new DatetimeConverter());
+        register(new DateConverter());
     }
 
     public static void register(Converter<?, ?> converter) {
