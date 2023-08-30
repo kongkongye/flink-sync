@@ -78,6 +78,8 @@ public interface JdbcDialect extends Serializable {
 
     List<String> getInsertColumns(List<String> idList, List<String> columnList);
 
+    List<String> getInsertIgnoreColumns(List<String> idList, List<String> columnList);
+
     List<String> getUpdateColumns(List<String> idList, List<String> columnList);
 
     List<String> getDeleteColumns(List<String> idList, List<String> columnList);

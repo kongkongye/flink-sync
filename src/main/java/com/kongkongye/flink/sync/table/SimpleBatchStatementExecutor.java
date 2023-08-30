@@ -115,7 +115,7 @@ public class SimpleBatchStatementExecutor implements JdbcBatchStatementExecutor<
 
         //params
         List<String> params = new ArrayList<>();
-        for (String column : dialect.getUpdateColumns(config.getTo().getIdList(), config.getTo().getColumnList())) {
+        for (String column : dialect.getInsertIgnoreColumns(config.getTo().getIdList(), config.getTo().getColumnList())) {
             Object value = after.get(column);
             String dataType = config.getTo().getTypes().get(column);
             String wrappedParameter = dialect.wrapParameter(dataType, value);

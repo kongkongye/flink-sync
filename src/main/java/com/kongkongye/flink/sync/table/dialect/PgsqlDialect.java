@@ -82,6 +82,14 @@ public class PgsqlDialect extends AbstractJdbcDialect {
     }
 
     @Override
+    public List<String> getInsertIgnoreColumns(List<String> idList, List<String> columnList) {
+        List<String> params = new ArrayList<>();
+        params.addAll(idList);
+        params.addAll(columnList);
+        return params;
+    }
+
+    @Override
     public List<String> getInsertColumns(List<String> idList, List<String> columnList) {
         List<String> params = new ArrayList<>();
         params.addAll(idList);
