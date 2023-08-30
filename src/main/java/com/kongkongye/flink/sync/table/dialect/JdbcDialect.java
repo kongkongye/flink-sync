@@ -74,6 +74,8 @@ public interface JdbcDialect extends Serializable {
     @Nullable
     String getUpsertSql();
 
+    String getInsertIgnoreSql();
+
     List<String> getInsertColumns(List<String> idList, List<String> columnList);
 
     List<String> getUpdateColumns(List<String> idList, List<String> columnList);

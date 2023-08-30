@@ -11,6 +11,11 @@ public enum ToMode {
      */
     retract,
     /**
+     * insert/update语句，delete语句
+     * 对于新增与更新记录，先插入（忽略已经存在），再更新
+     */
+    insertUpdate,
+    /**
      * insert语句，update语句，delete语句
      */
     plain,

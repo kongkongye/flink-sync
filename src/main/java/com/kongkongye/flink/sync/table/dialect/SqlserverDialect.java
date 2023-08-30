@@ -2,6 +2,7 @@ package com.kongkongye.flink.sync.table.dialect;
 
 import com.google.common.collect.Sets;
 import com.kongkongye.flink.sync.patch.sqlserver.SqlServerDialect;
+import com.kongkongye.flink.sync.util.SyncUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -64,6 +65,13 @@ public class SqlserverDialect extends AbstractJdbcDialect {
         allColumns.addAll(config.getTo().getColumnList());
         Optional<String> upsertStatement = sqlServerDialect.getUpsertStatement(config.getTo().getTable(), allColumns.toArray(new String[0]), config.getTo().getIdList().toArray(new String[0]));
         return upsertStatement.orElse(null);
+    }
+
+    @Override
+    public String getInsertIgnoreSql() {
+        List<String> allColumns = new ArrayList<>(config.getTo().getIdList());
+        allColumns.addAll(config.getTo().getColumnList());
+        return "insert into " + q(config.getTo().getTable()) + " ( " + SyncUtil.getFieldsStr(allColumns, getQuote()) + " ) SELECT " + SyncUtil.getPlaceholdersStr(allColumns.size()) + " WHERE NOT EXISTS (SELECT 1 FROM " + q(config.getTo().getTable()) + " WHERE " + SyncUtil.getFieldPlaceholdersStr(config.getTo().getIdList(), " and ", getQuote()) + ")";
     }
 
     @Override

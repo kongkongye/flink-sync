@@ -106,6 +106,27 @@ public class SimpleBatchStatementExecutor implements JdbcBatchStatementExecutor<
     }
 
     /**
+     * 获取插件忽略错误语句
+     */
+    private String getInsertIgnoreSql(JSONObject e) {
+        String sqlWithPlaceholders = dialect.getInsertIgnoreSql();
+
+        JSONObject after = e.getJSONObject("after");
+
+        //params
+        List<String> params = new ArrayList<>();
+        for (String column : dialect.getUpdateColumns(config.getTo().getIdList(), config.getTo().getColumnList())) {
+            Object value = after.get(column);
+            String dataType = config.getTo().getTypes().get(column);
+            String wrappedParameter = dialect.wrapParameter(dataType, value);
+            params.add(wrappedParameter);
+        }
+
+        //填充变量
+        return fillParams(sqlWithPlaceholders, params);
+    }
+
+    /**
      * 获取删除语句
      */
     private String getDeleteSql(JSONObject e, boolean before) {
@@ -189,6 +210,10 @@ public class SimpleBatchStatementExecutor implements JdbcBatchStatementExecutor<
                     sqls.add(getDeleteSql(e, false));
                     sqls.add(getInsertSql(e));
                     break;
+                case insertUpdate:
+                    sqls.add(getInsertIgnoreSql(e));
+                    sqls.add(getUpdateSql(e));
+                    break;
                 default:
                     throw new RuntimeException("unsupported mode: " + config.getTo().getMode());
             }
@@ -207,6 +232,10 @@ public class SimpleBatchStatementExecutor implements JdbcBatchStatementExecutor<
                 case retract:
                     sqls.add(getDeleteSql(e, false));
                     sqls.add(getInsertSql(e));
+                    break;
+                case insertUpdate:
+                    sqls.add(getInsertIgnoreSql(e));
+                    sqls.add(getUpdateSql(e));
                     break;
                 default:
                     throw new RuntimeException("unsupported mode: " + config.getTo().getMode());

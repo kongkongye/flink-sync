@@ -75,6 +75,13 @@ public class PgsqlDialect extends AbstractJdbcDialect {
     }
 
     @Override
+    public String getInsertIgnoreSql() {
+        List<String> allColumns = new ArrayList<>(config.getTo().getIdList());
+        allColumns.addAll(config.getTo().getColumnList());
+        return "insert into " + q(config.getTo().getTable()) + " ( " + SyncUtil.getFieldsStr(allColumns, getQuote()) + " ) values (" + SyncUtil.getPlaceholdersStr(allColumns.size()) + ") ON CONFLICT DO NOTHING";
+    }
+
+    @Override
     public List<String> getInsertColumns(List<String> idList, List<String> columnList) {
         List<String> params = new ArrayList<>();
         params.addAll(idList);
