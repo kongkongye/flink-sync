@@ -16,6 +16,11 @@ public enum ToMode {
      */
     insertUpdate,
     /**
+     * insert/update语句，delete语句
+     * 类似plain，只是insert用insert ignore
+     */
+    insertIgnore,
+    /**
      * insert语句，update语句，delete语句
      */
     plain,

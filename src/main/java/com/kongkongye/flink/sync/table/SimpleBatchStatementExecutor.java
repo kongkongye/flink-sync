@@ -199,6 +199,9 @@ public class SimpleBatchStatementExecutor implements JdbcBatchStatementExecutor<
                 case plain:
                     sqls.add(getInsertSql(e));
                     break;
+                case insertIgnore:
+                    sqls.add(getInsertIgnoreSql(e));
+                    break;
                 case upsert:
                     String upsertSql = getUpsertSql(e);
                     if (upsertSql == null) {
@@ -220,6 +223,9 @@ public class SimpleBatchStatementExecutor implements JdbcBatchStatementExecutor<
         } else if (Objects.equals(e.getString("op"), "u")) {//更新
             switch (config.getTo().getMode()) {
                 case plain:
+                    sqls.add(getUpdateSql(e));
+                    break;
+                case insertIgnore:
                     sqls.add(getUpdateSql(e));
                     break;
                 case upsert:
