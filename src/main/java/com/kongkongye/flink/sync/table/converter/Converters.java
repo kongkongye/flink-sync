@@ -1,5 +1,6 @@
 package com.kongkongye.flink.sync.table.converter;
 
+import com.kongkongye.flink.sync.table.converter.common.BigDecimalFixConverter;
 import com.kongkongye.flink.sync.table.converter.common.DateConverter;
 import com.kongkongye.flink.sync.table.converter.common.DatetimeConverter;
 
@@ -13,6 +14,7 @@ public class Converters {
     static {
         register(new DatetimeConverter());
         register(new DateConverter());
+        register(new BigDecimalFixConverter());
     }
 
     public static void register(Converter<?, ?> converter) {
