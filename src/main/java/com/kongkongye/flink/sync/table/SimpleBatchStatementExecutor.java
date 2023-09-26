@@ -41,17 +41,22 @@ public class SimpleBatchStatementExecutor implements JdbcBatchStatementExecutor<
 
     @Override
     public void executeBatch() throws SQLException {
-        if (!batch.isEmpty()) {
-            for (JSONObject e : batch) {
-                //构建sql语句
-                for (String sql : buildSqls(e)) {
-                    //添加batch
-                    statement.addBatch(sql);
-//                    log.debug("[sql]{}", sql);
+        try {
+            if (!batch.isEmpty()) {
+                for (JSONObject e : batch) {
+                    //构建sql语句
+                    for (String sql : buildSqls(e)) {
+                        //添加batch
+                        statement.addBatch(sql);
+    //                    log.debug("[sql]{}", sql);
+                    }
                 }
+                statement.executeBatch();
+                batch.clear();
             }
-            statement.executeBatch();
-            batch.clear();
+        } catch (Exception e) {
+            log.error("executeBatch error", e);
+            throw e;
         }
     }
 
@@ -160,16 +165,16 @@ public class SimpleBatchStatementExecutor implements JdbcBatchStatementExecutor<
         JSONObject after = e.getJSONObject("after");
 
         //params
-        List<String> columns = dialect.getUpsertColumns(config.getTo().getIdList(), config.getTo().getColumnList());
-        for (String column : columns) {
+        List<String> params = new ArrayList<>();
+        for (String column : dialect.getUpsertColumns(config.getTo().getIdList(), config.getTo().getColumnList())) {
             Object value = after.get(column);
             String dataType = config.getTo().getTypes().get(column);
             String wrappedParameter = dialect.wrapParameter(dataType, value);
-            columns.add(wrappedParameter);
+            params.add(wrappedParameter);
         }
 
         //填充变量
-        return fillParams(sqlWithPlaceholders, columns);
+        return fillParams(sqlWithPlaceholders, params);
     }
 
     /**
