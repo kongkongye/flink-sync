@@ -97,7 +97,7 @@ public class TableSyncJob {
                         @Override
                         public void deserialize(ConsumerRecord<byte[], byte[]> record, Collector<Ele> out) {
                             //如果是墓碑事件，即消息体为空，则不处理
-                            if (record.value() != null) {
+                            if (record.key() != null && record.value() != null) {
                                 out.collect(new Ele(new String(record.key()), new String(record.value())));
                             }
                         }
