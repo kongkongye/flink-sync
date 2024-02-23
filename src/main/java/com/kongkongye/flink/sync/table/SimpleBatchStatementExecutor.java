@@ -41,6 +41,7 @@ public class SimpleBatchStatementExecutor implements JdbcBatchStatementExecutor<
 
     @Override
     public void executeBatch() throws SQLException {
+        List<String> allSqls = new ArrayList<>();
         try {
             if (!batch.isEmpty()) {
                 for (JSONObject e : batch) {
@@ -48,6 +49,7 @@ public class SimpleBatchStatementExecutor implements JdbcBatchStatementExecutor<
                     for (String sql : buildSqls(e)) {
                         //添加batch
                         statement.addBatch(sql);
+                        allSqls.add(sql);
     //                    log.debug("[sql]{}", sql);
                     }
                 }
@@ -55,7 +57,7 @@ public class SimpleBatchStatementExecutor implements JdbcBatchStatementExecutor<
                 batch.clear();
             }
         } catch (Exception e) {
-            log.error("executeBatch error", e);
+            log.error("executeBatch error, allSqls: {}", allSqls, e);
             throw e;
         }
     }
