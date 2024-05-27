@@ -3,6 +3,7 @@ package com.kongkongye.flink.sync.table.converter;
 import com.kongkongye.flink.sync.table.converter.common.BigDecimalFixConverter;
 import com.kongkongye.flink.sync.table.converter.common.DateConverter;
 import com.kongkongye.flink.sync.table.converter.common.DatetimeConverter;
+import com.kongkongye.flink.sync.table.converter.common.ZonedDatetimeStrConverter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,6 +14,7 @@ public class Converters {
 
     static {
         register(new DatetimeConverter());
+        register(new ZonedDatetimeStrConverter());
         register(new DateConverter());
         register(new BigDecimalFixConverter());
     }
