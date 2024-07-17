@@ -1,6 +1,7 @@
 package com.kongkongye.flink.sync.table.dialect;
 
 import com.google.common.collect.Sets;
+import com.kongkongye.flink.sync.table.config.AliasName;
 import com.kongkongye.flink.sync.util.SyncUtil;
 
 import javax.annotation.Nonnull;
@@ -8,6 +9,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class PgsqlDialect extends AbstractJdbcDialect {
     public static final String NAME = "pgsql";
@@ -68,53 +70,56 @@ public class PgsqlDialect extends AbstractJdbcDialect {
      */
     @Override
     public String getUpsertSql() {
-        List<String> allColumns = new ArrayList<>(config.getTo().getIdList());
+        List<AliasName> allColumns = new ArrayList<>(config.getTo().getIdList());
         allColumns.addAll(config.getTo().getColumnList());
-        return "insert into " + q(config.getTo().getTable()) + " ( " + SyncUtil.getFieldsStr(allColumns, getQuote()) + " ) values (" + SyncUtil.getPlaceholdersStr(allColumns.size()) + " ) "
-                + " ON CONFLICT ("+SyncUtil.getFieldsStr(config.getTo().getIdList(), getQuote())+") do update " + SyncUtil.getFieldPlaceholdersStr(allColumns, ",", getQuote());
+        List<String> allColumnsTo = allColumns.stream().map(AliasName::getAlias).collect(Collectors.toList());
+        List<String> idListTo = config.getTo().getIdList().stream().map(AliasName::getAlias).collect(Collectors.toList());
+        return "insert into " + q(config.getTo().getTable()) + " ( " + SyncUtil.getFieldsStr(allColumnsTo, getQuote()) + " ) values (" + SyncUtil.getPlaceholdersStr(allColumnsTo.size()) + " ) "
+                + " ON CONFLICT ("+SyncUtil.getFieldsStr(idListTo, getQuote())+") do update set " + SyncUtil.getFieldPlaceholdersStr(allColumnsTo, ",", getQuote());
     }
 
     @Override
     public String getInsertIgnoreSql() {
-        List<String> allColumns = new ArrayList<>(config.getTo().getIdList());
+        List<AliasName> allColumns = new ArrayList<>(config.getTo().getIdList());
         allColumns.addAll(config.getTo().getColumnList());
-        return "insert into " + q(config.getTo().getTable()) + " ( " + SyncUtil.getFieldsStr(allColumns, getQuote()) + " ) values (" + SyncUtil.getPlaceholdersStr(allColumns.size()) + ") ON CONFLICT DO NOTHING";
+        List<String> allColumnsTo = allColumns.stream().map(AliasName::getAlias).collect(Collectors.toList());
+        return "insert into " + q(config.getTo().getTable()) + " ( " + SyncUtil.getFieldsStr(allColumnsTo, getQuote()) + " ) values (" + SyncUtil.getPlaceholdersStr(allColumnsTo.size()) + ") ON CONFLICT DO NOTHING";
     }
 
     @Override
-    public List<String> getInsertIgnoreColumns(List<String> idList, List<String> columnList) {
-        List<String> params = new ArrayList<>();
+    public List<AliasName> getInsertIgnoreColumns(List<AliasName> idList, List<AliasName> columnList) {
+        List<AliasName> params = new ArrayList<>();
         params.addAll(idList);
         params.addAll(columnList);
         return params;
     }
 
     @Override
-    public List<String> getInsertColumns(List<String> idList, List<String> columnList) {
-        List<String> params = new ArrayList<>();
+    public List<AliasName> getInsertColumns(List<AliasName> idList, List<AliasName> columnList) {
+        List<AliasName> params = new ArrayList<>();
         params.addAll(idList);
         params.addAll(columnList);
         return params;
     }
 
     @Override
-    public List<String> getUpdateColumns(List<String> idList, List<String> columnList) {
-        List<String> params = new ArrayList<>();
+    public List<AliasName> getUpdateColumns(List<AliasName> idList, List<AliasName> columnList) {
+        List<AliasName> params = new ArrayList<>();
         params.addAll(columnList);
         params.addAll(idList);
         return params;
     }
 
     @Override
-    public List<String> getDeleteColumns(List<String> idList, List<String> columnList) {
-        List<String> params = new ArrayList<>();
+    public List<AliasName> getDeleteColumns(List<AliasName> idList, List<AliasName> columnList) {
+        List<AliasName> params = new ArrayList<>();
         params.addAll(idList);
         return params;
     }
 
     @Override
-    public List<String> getUpsertColumns(List<String> idList, List<String> columnList) {
-        List<String> params = new ArrayList<>();
+    public List<AliasName> getUpsertColumns(List<AliasName> idList, List<AliasName> columnList) {
+        List<AliasName> params = new ArrayList<>();
         for (int j = 0; j < 2; j++) {
             params.addAll(idList);
             params.addAll(columnList);

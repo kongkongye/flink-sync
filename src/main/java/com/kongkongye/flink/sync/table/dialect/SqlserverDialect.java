@@ -2,6 +2,7 @@ package com.kongkongye.flink.sync.table.dialect;
 
 import com.google.common.collect.Sets;
 import com.kongkongye.flink.sync.patch.sqlserver.SqlServerDialect;
+import com.kongkongye.flink.sync.table.config.AliasName;
 import com.kongkongye.flink.sync.util.SyncUtil;
 
 import javax.annotation.Nonnull;
@@ -10,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class SqlserverDialect extends AbstractJdbcDialect {
     public static final String NAME = "sqlserver";
@@ -61,22 +63,26 @@ public class SqlserverDialect extends AbstractJdbcDialect {
 
     @Override
     public String getUpsertSql() {
-        List<String> allColumns = new ArrayList<>(config.getTo().getIdList());
+        List<AliasName> allColumns = new ArrayList<>(config.getTo().getIdList());
         allColumns.addAll(config.getTo().getColumnList());
-        Optional<String> upsertStatement = sqlServerDialect.getUpsertStatement(config.getTo().getTable(), allColumns.toArray(new String[0]), config.getTo().getIdList().toArray(new String[0]));
+        List<String> allColumnsTo = allColumns.stream().map(AliasName::getAlias).collect(Collectors.toList());
+        List<String> idListTo = config.getTo().getIdList().stream().map(AliasName::getAlias).collect(Collectors.toList());
+        Optional<String> upsertStatement = sqlServerDialect.getUpsertStatement(config.getTo().getTable(), allColumnsTo.toArray(new String[0]), idListTo.toArray(new String[0]));
         return upsertStatement.orElse(null);
     }
 
     @Override
     public String getInsertIgnoreSql() {
-        List<String> allColumns = new ArrayList<>(config.getTo().getIdList());
+        List<AliasName> allColumns = new ArrayList<>(config.getTo().getIdList());
         allColumns.addAll(config.getTo().getColumnList());
-        return "insert into " + q(config.getTo().getTable()) + " ( " + SyncUtil.getFieldsStr(allColumns, getQuote()) + " ) SELECT " + SyncUtil.getPlaceholdersStr(allColumns.size()) + " WHERE NOT EXISTS (SELECT 1 FROM " + q(config.getTo().getTable()) + " WHERE " + SyncUtil.getFieldPlaceholdersStr(config.getTo().getIdList(), " and ", getQuote()) + ")";
+        List<String> allColumnsTo = allColumns.stream().map(AliasName::getAlias).collect(Collectors.toList());
+        List<String> idListTo = config.getTo().getIdList().stream().map(AliasName::getAlias).collect(Collectors.toList());
+        return "insert into " + q(config.getTo().getTable()) + " ( " + SyncUtil.getFieldsStr(allColumnsTo, getQuote()) + " ) SELECT " + SyncUtil.getPlaceholdersStr(allColumns.size()) + " WHERE NOT EXISTS (SELECT 1 FROM " + q(config.getTo().getTable()) + " WHERE " + SyncUtil.getFieldPlaceholdersStr(idListTo, " and ", getQuote()) + ")";
     }
 
     @Override
-    public List<String> getInsertIgnoreColumns(List<String> idList, List<String> columnList) {
-        List<String> params = new ArrayList<>();
+    public List<AliasName> getInsertIgnoreColumns(List<AliasName> idList, List<AliasName> columnList) {
+        List<AliasName> params = new ArrayList<>();
         params.addAll(idList);
         params.addAll(columnList);
         params.addAll(idList);
@@ -84,31 +90,31 @@ public class SqlserverDialect extends AbstractJdbcDialect {
     }
 
     @Override
-    public List<String> getInsertColumns(List<String> idList, List<String> columnList) {
-        List<String> params = new ArrayList<>();
+    public List<AliasName> getInsertColumns(List<AliasName> idList, List<AliasName> columnList) {
+        List<AliasName> params = new ArrayList<>();
         params.addAll(idList);
         params.addAll(columnList);
         return params;
     }
 
     @Override
-    public List<String> getUpdateColumns(List<String> idList, List<String> columnList) {
-        List<String> params = new ArrayList<>();
+    public List<AliasName> getUpdateColumns(List<AliasName> idList, List<AliasName> columnList) {
+        List<AliasName> params = new ArrayList<>();
         params.addAll(columnList);
         params.addAll(idList);
         return params;
     }
 
     @Override
-    public List<String> getDeleteColumns(List<String> idList, List<String> columnList) {
-        List<String> params = new ArrayList<>();
+    public List<AliasName> getDeleteColumns(List<AliasName> idList, List<AliasName> columnList) {
+        List<AliasName> params = new ArrayList<>();
         params.addAll(idList);
         return params;
     }
 
     @Override
-    public List<String> getUpsertColumns(List<String> idList, List<String> columnList) {
-        List<String> params = new ArrayList<>();
+    public List<AliasName> getUpsertColumns(List<AliasName> idList, List<AliasName> columnList) {
+        List<AliasName> params = new ArrayList<>();
         params.addAll(idList);
         params.addAll(columnList);
         return params;

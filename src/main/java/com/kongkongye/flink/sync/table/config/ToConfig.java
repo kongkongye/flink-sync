@@ -1,5 +1,6 @@
 package com.kongkongye.flink.sync.table.config;
 
+import com.google.common.base.Preconditions;
 import com.kongkongye.flink.sync.table.config.enums.ToMode;
 import com.kongkongye.flink.sync.table.dialect.JdbcDialect;
 import lombok.Data;
@@ -25,15 +26,15 @@ public class ToConfig implements Serializable {
     private String columns;
     private List<ConverterConfig> converters = new ArrayList<>();
 
-    private List<String> idList;
-    private List<String> columnList;
+    private List<AliasName> idList;
+    private List<AliasName> columnList;
 
     //列名 数据库类型
     private Map<String, String> types = new HashMap<>();
 
     public void init() {
-        idList = Arrays.stream(ids.split(",")).map(String::trim).collect(Collectors.toList());
-        columnList = Arrays.stream(columns.split(",")).map(String::trim).collect(Collectors.toList());
+        idList = Arrays.stream(ids.split(",")).map(AliasName::of).collect(Collectors.toList());
+        columnList = Arrays.stream(columns.split(",")).map(AliasName::of).collect(Collectors.toList());
     }
 
     @SneakyThrows
@@ -44,16 +45,17 @@ public class ToConfig implements Serializable {
             converterConfig.after();
         }
 
-        ArrayList<String> columns = new ArrayList<>(idList);
+        ArrayList<AliasName> columns = new ArrayList<>(idList);
         columns.addAll(columnList);
         try (Connection connection = DriverManager.getConnection(url, username, password)) {
-            for (String column : columns) {
-                String columnTypeSql = dialect.getColumnTypeSql(column);
+            for (AliasName column : columns) {
+                String columnTypeSql = dialect.getColumnTypeSql(column.alias);
                 try (PreparedStatement ps = connection.prepareStatement(columnTypeSql)) {
                     try (ResultSet rs = ps.executeQuery()) {
                         while (rs.next()) {
                             String columnType = rs.getString(1);
-                            types.put(column, dialect.getColumnType(columnType));
+                            Preconditions.checkNotNull(columnType, "columnType is null: " + column.alias);
+                            types.put(column.alias, dialect.getColumnType(columnType));
                         }
                     }
                 }

@@ -1,5 +1,6 @@
 package com.kongkongye.flink.sync.table.dialect;
 
+import com.kongkongye.flink.sync.table.config.AliasName;
 import com.kongkongye.flink.sync.table.config.SyncConfig;
 
 import javax.annotation.Nonnull;
@@ -76,15 +77,15 @@ public interface JdbcDialect extends Serializable {
 
     String getInsertIgnoreSql();
 
-    List<String> getInsertColumns(List<String> idList, List<String> columnList);
+    List<AliasName> getInsertColumns(List<AliasName> idList, List<AliasName> columnList);
 
-    List<String> getInsertIgnoreColumns(List<String> idList, List<String> columnList);
+    List<AliasName> getInsertIgnoreColumns(List<AliasName> idList, List<AliasName> columnList);
 
-    List<String> getUpdateColumns(List<String> idList, List<String> columnList);
+    List<AliasName> getUpdateColumns(List<AliasName> idList, List<AliasName> columnList);
 
-    List<String> getDeleteColumns(List<String> idList, List<String> columnList);
+    List<AliasName> getDeleteColumns(List<AliasName> idList, List<AliasName> columnList);
 
-    List<String> getUpsertColumns(List<String> idList, List<String> columnList);
+    List<AliasName> getUpsertColumns(List<AliasName> idList, List<AliasName> columnList);
 
     /**
      * 包裹变量

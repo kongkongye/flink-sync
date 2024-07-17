@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.kongkongye.flink.sync.table.config.AliasName;
 import com.kongkongye.flink.sync.table.config.ConverterConfig;
 import com.kongkongye.flink.sync.table.config.SyncConfig;
 import com.kongkongye.flink.sync.table.config.enums.FromType;
@@ -165,28 +166,28 @@ public class TableSyncJob {
         SingleOutputStreamOperator<JSONObject> convertedStream = jsonStream.map(e -> {
             if (Objects.equals(e.getString("op"), "c") || Objects.equals(e.getString("op"), "r")) {//新增
                 JSONObject after = e.getJSONObject("after");
-                for (List<String> list : Lists.newArrayList(config.getTo().getIdList(), config.getTo().getColumnList())) {
-                    for (String col : list) {
-                        Object value = after.get(col);
-                        value = convertValue(config.getTo().getConverters(), config.getTo().getTypes().get(col), col, value);
-                        after.put(col, value);
+                for (List<AliasName> list : Lists.newArrayList(config.getTo().getIdList(), config.getTo().getColumnList())) {
+                    for (AliasName col : list) {
+                        Object value = after.get(col.name);
+                        value = convertValue(config.getTo().getConverters(), config.getTo().getTypes().get(col.alias), col.name, value);
+                        after.put(col.name, value);
                     }
                 }
             } else if (Objects.equals(e.getString("op"), "u")) {//更新
                 JSONObject after = e.getJSONObject("after");
-                for (List<String> list : Lists.newArrayList(config.getTo().getIdList(), config.getTo().getColumnList())) {
-                    for (String col : list) {
-                        Object value = after.get(col);
-                        value = convertValue(config.getTo().getConverters(), config.getTo().getTypes().get(col), col, value);
-                        after.put(col, value);
+                for (List<AliasName> list : Lists.newArrayList(config.getTo().getIdList(), config.getTo().getColumnList())) {
+                    for (AliasName col : list) {
+                        Object value = after.get(col.name);
+                        value = convertValue(config.getTo().getConverters(), config.getTo().getTypes().get(col.alias), col.name, value);
+                        after.put(col.name, value);
                     }
                 }
             } else if (Objects.equals(e.getString("op"), "d")) {//删除
                 JSONObject before = e.getJSONObject("before");
-                for (String col : config.getTo().getIdList()) {
-                    Object value = before.get(col);
-                    value = convertValue(config.getTo().getConverters(), config.getTo().getTypes().get(col), col, value);
-                    before.put(col, value);
+                for (AliasName col : config.getTo().getIdList()) {
+                    Object value = before.get(col.name);
+                    value = convertValue(config.getTo().getConverters(), config.getTo().getTypes().get(col.alias), col.name, value);
+                    before.put(col.name, value);
                 }
             }
             return e;
@@ -204,7 +205,7 @@ public class TableSyncJob {
         environment.execute("[表同步]" + file);
     }
 
-    private static Object convertValue(List<ConverterConfig> converters, String columnType, String column, Object value) {
+    private static Object convertValue(List<ConverterConfig> converters, String columnType, String fromColumn, Object value) {
         if (value == null) {
             return null;
         }
@@ -212,7 +213,7 @@ public class TableSyncJob {
         //按顺序遍历转换器配置
         for (ConverterConfig converterConfig : converters) {
             //检测列名匹配
-            if (converterConfig.match(column)) {
+            if (converterConfig.match(fromColumn)) {
                 //获取转换器
                 Converter converter = Converters.getByName(converterConfig.getConverter());
                 if (converter == null) {
@@ -222,7 +223,7 @@ public class TableSyncJob {
                 if (converter.canHandle(columnType, value)) {
                     //转换
                     Object result = converter.convert(converterConfig.getConfig(), value);
-                    log.debug("[convert]{}: {} --> {}", converter.name() + "|" + column, value, result);
+                    log.debug("[convert]{}: {} --> {}", converter.name() + "|" + fromColumn, value, result);
                     //匹配到一个转换器，直接返回不再继续检测
                     return result;
                 }

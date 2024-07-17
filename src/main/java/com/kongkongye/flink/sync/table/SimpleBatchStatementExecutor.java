@@ -1,6 +1,7 @@
 package com.kongkongye.flink.sync.table;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.kongkongye.flink.sync.table.config.AliasName;
 import com.kongkongye.flink.sync.table.config.SyncConfig;
 import com.kongkongye.flink.sync.table.dialect.JdbcDialect;
 import lombok.extern.slf4j.Slf4j;
@@ -80,9 +81,9 @@ public class SimpleBatchStatementExecutor implements JdbcBatchStatementExecutor<
 
         //params
         List<String> params = new ArrayList<>();
-        for (String column : dialect.getInsertColumns(config.getTo().getIdList(), config.getTo().getColumnList())) {
-            Object value = after.get(column);
-            String dataType = config.getTo().getTypes().get(column);
+        for (AliasName column : dialect.getInsertColumns(config.getTo().getIdList(), config.getTo().getColumnList())) {
+            Object value = after.get(column.name);
+            String dataType = config.getTo().getTypes().get(column.alias);
             String wrappedParameter = dialect.wrapParameter(dataType, value);
             params.add(wrappedParameter);
         }
@@ -101,9 +102,9 @@ public class SimpleBatchStatementExecutor implements JdbcBatchStatementExecutor<
 
         //params
         List<String> params = new ArrayList<>();
-        for (String column : dialect.getUpdateColumns(config.getTo().getIdList(), config.getTo().getColumnList())) {
-            Object value = after.get(column);
-            String dataType = config.getTo().getTypes().get(column);
+        for (AliasName column : dialect.getUpdateColumns(config.getTo().getIdList(), config.getTo().getColumnList())) {
+            Object value = after.get(column.name);
+            String dataType = config.getTo().getTypes().get(column.alias);
             String wrappedParameter = dialect.wrapParameter(dataType, value);
             params.add(wrappedParameter);
         }
@@ -122,9 +123,9 @@ public class SimpleBatchStatementExecutor implements JdbcBatchStatementExecutor<
 
         //params
         List<String> params = new ArrayList<>();
-        for (String column : dialect.getInsertIgnoreColumns(config.getTo().getIdList(), config.getTo().getColumnList())) {
-            Object value = after.get(column);
-            String dataType = config.getTo().getTypes().get(column);
+        for (AliasName column : dialect.getInsertIgnoreColumns(config.getTo().getIdList(), config.getTo().getColumnList())) {
+            Object value = after.get(column.name);
+            String dataType = config.getTo().getTypes().get(column.alias);
             String wrappedParameter = dialect.wrapParameter(dataType, value);
             params.add(wrappedParameter);
         }
@@ -143,9 +144,9 @@ public class SimpleBatchStatementExecutor implements JdbcBatchStatementExecutor<
 
         //params
         List<String> params = new ArrayList<>();
-        for (String column : dialect.getDeleteColumns(config.getTo().getIdList(), config.getTo().getColumnList())) {
-            Object value = json.get(column);
-            String dataType = config.getTo().getTypes().get(column);
+        for (AliasName column : dialect.getDeleteColumns(config.getTo().getIdList(), config.getTo().getColumnList())) {
+            Object value = json.get(column.name);
+            String dataType = config.getTo().getTypes().get(column.alias);
             String wrappedParameter = dialect.wrapParameter(dataType, value);
             params.add(wrappedParameter);
         }
@@ -168,9 +169,9 @@ public class SimpleBatchStatementExecutor implements JdbcBatchStatementExecutor<
 
         //params
         List<String> params = new ArrayList<>();
-        for (String column : dialect.getUpsertColumns(config.getTo().getIdList(), config.getTo().getColumnList())) {
-            Object value = after.get(column);
-            String dataType = config.getTo().getTypes().get(column);
+        for (AliasName column : dialect.getUpsertColumns(config.getTo().getIdList(), config.getTo().getColumnList())) {
+            Object value = after.get(column.name);
+            String dataType = config.getTo().getTypes().get(column.alias);
             String wrappedParameter = dialect.wrapParameter(dataType, value);
             params.add(wrappedParameter);
         }

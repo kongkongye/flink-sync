@@ -1,10 +1,12 @@
 package com.kongkongye.flink.sync.table.dialect;
 
+import com.kongkongye.flink.sync.table.config.AliasName;
 import com.kongkongye.flink.sync.table.config.SyncConfig;
 import com.kongkongye.flink.sync.util.SyncUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public abstract class AbstractJdbcDialect implements JdbcDialect {
     protected SyncConfig config;
@@ -19,9 +21,10 @@ public abstract class AbstractJdbcDialect implements JdbcDialect {
      */
     @Override
     public String getInsertSql() {
-        List<String> allColumns = new ArrayList<>(config.getTo().getIdList());
+        List<AliasName> allColumns = new ArrayList<>(config.getTo().getIdList());
         allColumns.addAll(config.getTo().getColumnList());
-        return "insert into " + q(config.getTo().getTable()) + " ( " + SyncUtil.getFieldsStr(allColumns, getQuote()) + " ) values (" + SyncUtil.getPlaceholdersStr(allColumns.size()) + ")";
+        List<String> allColumnsTo = allColumns.stream().map(AliasName::getAlias).collect(Collectors.toList());
+        return "insert into " + q(config.getTo().getTable()) + " ( " + SyncUtil.getFieldsStr(allColumnsTo, getQuote()) + " ) values (" + SyncUtil.getPlaceholdersStr(allColumnsTo.size()) + ")";
     }
 
     /**
@@ -29,7 +32,9 @@ public abstract class AbstractJdbcDialect implements JdbcDialect {
      */
     @Override
     public String getUpdateSql() {
-        return "update " + q(config.getTo().getTable()) + " set " + SyncUtil.getFieldPlaceholdersStr(config.getTo().getColumnList(), ",", getQuote()) + " where " + SyncUtil.getFieldPlaceholdersStr(config.getTo().getIdList(), " and ", getQuote());
+        List<String> idListTo = config.getTo().getIdList().stream().map(AliasName::getAlias).collect(Collectors.toList());
+        List<String> columnListTo = config.getTo().getColumnList().stream().map(AliasName::getAlias).collect(Collectors.toList());
+        return "update " + q(config.getTo().getTable()) + " set " + SyncUtil.getFieldPlaceholdersStr(columnListTo, ",", getQuote()) + " where " + SyncUtil.getFieldPlaceholdersStr(idListTo, " and ", getQuote());
     }
 
     /**
@@ -37,7 +42,8 @@ public abstract class AbstractJdbcDialect implements JdbcDialect {
      */
     @Override
     public String getDeleteSql() {
-        return "delete from " + q(config.getTo().getTable()) + " where " + SyncUtil.getFieldPlaceholdersStr(config.getTo().getIdList(), " and ", getQuote());
+        List<String> idListTo = config.getTo().getIdList().stream().map(AliasName::getAlias).collect(Collectors.toList());
+        return "delete from " + q(config.getTo().getTable()) + " where " + SyncUtil.getFieldPlaceholdersStr(idListTo, " and ", getQuote());
     }
 
     /**
