@@ -27,7 +27,7 @@ public class SqlSyncJob {
         else environment = StreamExecutionEnvironment.getExecutionEnvironment();
 
         // 设置并发度为1
-        environment.setParallelism(1);
+//        environment.setParallelism(1);
 
         StreamTableEnvironment tableEnvironment = StreamTableEnvironment.create(environment);
         tableEnvironment.getConfig().getConfiguration().setString("pipeline.name", "[sql同步]" + file);
