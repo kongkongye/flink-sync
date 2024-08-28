@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -77,12 +78,10 @@ public class SimpleBatchStatementExecutor implements JdbcBatchStatementExecutor<
     private String getInsertSql(JSONObject e) {
         String sqlWithPlaceholders = dialect.getInsertSql();
 
-        JSONObject after = e.getJSONObject("after");
-
         //params
         List<String> params = new ArrayList<>();
         for (AliasName column : dialect.getInsertColumns(config.getTo().getIdList(), config.getTo().getColumnList())) {
-            Object value = after.get(column.name);
+            Object value = getValue(e, column.name);
             String dataType = config.getTo().getTypes().get(column.alias);
             String wrappedParameter = dialect.wrapParameter(dataType, value);
             params.add(wrappedParameter);
@@ -98,12 +97,10 @@ public class SimpleBatchStatementExecutor implements JdbcBatchStatementExecutor<
     private String getUpdateSql(JSONObject e) {
         String sqlWithPlaceholders = dialect.getUpdateSql();
 
-        JSONObject after = e.getJSONObject("after");
-
         //params
         List<String> params = new ArrayList<>();
         for (AliasName column : dialect.getUpdateColumns(config.getTo().getIdList(), config.getTo().getColumnList())) {
-            Object value = after.get(column.name);
+            Object value = getValue(e, column.name);
             String dataType = config.getTo().getTypes().get(column.alias);
             String wrappedParameter = dialect.wrapParameter(dataType, value);
             params.add(wrappedParameter);
@@ -119,12 +116,10 @@ public class SimpleBatchStatementExecutor implements JdbcBatchStatementExecutor<
     private String getInsertIgnoreSql(JSONObject e) {
         String sqlWithPlaceholders = dialect.getInsertIgnoreSql();
 
-        JSONObject after = e.getJSONObject("after");
-
         //params
         List<String> params = new ArrayList<>();
         for (AliasName column : dialect.getInsertIgnoreColumns(config.getTo().getIdList(), config.getTo().getColumnList())) {
-            Object value = after.get(column.name);
+            Object value = getValue(e, column.name);
             String dataType = config.getTo().getTypes().get(column.alias);
             String wrappedParameter = dialect.wrapParameter(dataType, value);
             params.add(wrappedParameter);
@@ -165,12 +160,10 @@ public class SimpleBatchStatementExecutor implements JdbcBatchStatementExecutor<
             return null;
         }
 
-        JSONObject after = e.getJSONObject("after");
-
         //params
         List<String> params = new ArrayList<>();
         for (AliasName column : dialect.getUpsertColumns(config.getTo().getIdList(), config.getTo().getColumnList())) {
-            Object value = after.get(column.name);
+            Object value = getValue(e, column.name);
             String dataType = config.getTo().getTypes().get(column.alias);
             String wrappedParameter = dialect.wrapParameter(dataType, value);
             params.add(wrappedParameter);
@@ -178,6 +171,16 @@ public class SimpleBatchStatementExecutor implements JdbcBatchStatementExecutor<
 
         //填充变量
         return fillParams(sqlWithPlaceholders, params);
+    }
+
+    private Object getValue(JSONObject row, String columnName) {
+        JSONObject after = row.getJSONObject("after");
+        Map<String, Object> extraParams = config.getTo().getExtraParamsMap();
+
+        if (extraParams.containsKey(columnName)) {
+            return extraParams.get(columnName);
+        }
+        return after.get(columnName);
     }
 
     /**

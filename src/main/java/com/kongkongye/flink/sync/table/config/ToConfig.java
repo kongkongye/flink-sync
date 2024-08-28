@@ -1,5 +1,6 @@
 package com.kongkongye.flink.sync.table.config;
 
+import com.alibaba.fastjson2.JSONObject;
 import com.google.common.base.Preconditions;
 import com.kongkongye.flink.sync.table.config.enums.ToMode;
 import com.kongkongye.flink.sync.table.dialect.JdbcDialect;
@@ -24,10 +25,12 @@ public class ToConfig implements Serializable {
     private String table;
     private String ids;
     private String columns;
+    private JSONObject extraParams;
     private List<ConverterConfig> converters = new ArrayList<>();
 
     private List<AliasName> idList;
     private List<AliasName> columnList;
+    private Map<String, Object> extraParamsMap;
 
     //列名 数据库类型
     private Map<String, String> types = new HashMap<>();
@@ -35,6 +38,19 @@ public class ToConfig implements Serializable {
     public void init() {
         idList = Arrays.stream(ids.split(",")).map(AliasName::of).collect(Collectors.toList());
         columnList = Arrays.stream(columns.split(",")).map(AliasName::of).collect(Collectors.toList());
+
+        extraParamsMap = new HashMap<>();
+        extraParams.forEach(
+                (k, v) -> {
+                    if (v instanceof JSONObject) {
+                        String type = ((JSONObject) v).getString("type");
+                        if ("now".equals(type)) {
+                            v = System.currentTimeMillis();
+                        }
+                    }
+                    extraParamsMap.put(k, v);
+                }
+        );
     }
 
     @SneakyThrows
