@@ -12,6 +12,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -45,7 +46,8 @@ public class ToConfig implements Serializable {
                     if (v instanceof JSONObject) {
                         String type = ((JSONObject) v).getString("type");
                         if ("now".equals(type)) {
-                            v = System.currentTimeMillis();
+                            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+                            v = sdf.format(new Date());
                         }
                     }
                     extraParamsMap.put(k, v);
