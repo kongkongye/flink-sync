@@ -41,18 +41,20 @@ public class ToConfig implements Serializable {
         columnList = Arrays.stream(columns.split(",")).map(AliasName::of).collect(Collectors.toList());
 
         extraParamsMap = new HashMap<>();
-        extraParams.forEach(
-                (k, v) -> {
-                    if (v instanceof JSONObject) {
-                        String type = ((JSONObject) v).getString("type");
-                        if ("now".equals(type)) {
-                            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-                            v = sdf.format(new Date());
+        if (extraParams != null) {
+            extraParams.forEach(
+                    (k, v) -> {
+                        if (v instanceof JSONObject) {
+                            String type = ((JSONObject) v).getString("type");
+                            if ("now".equals(type)) {
+                                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+                                v = sdf.format(new Date());
+                            }
                         }
+                        extraParamsMap.put(k, v);
                     }
-                    extraParamsMap.put(k, v);
-                }
-        );
+            );
+        }
     }
 
     @SneakyThrows
