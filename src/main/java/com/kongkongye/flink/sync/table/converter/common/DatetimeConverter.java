@@ -29,8 +29,15 @@ public class DatetimeConverter implements Converter<Number, String> {
 
         TimeZone timeZone = TimeZone.getTimeZone(timezone);
         Calendar calendar = Calendar.getInstance(timeZone);
-        calendar.setTimeInMillis(input.longValue()+offset);
+        long pre13 = input.longValue();
+        //l保留前13位
+        if (String.valueOf(pre13).length() > 13) {
+            String tmp = String.valueOf(pre13).substring(0, 13);
+            pre13 = Long.parseLong(tmp);
+        }
+        calendar.setTimeInMillis(pre13 +offset);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-        return sdf.format(calendar.getTime());
+        String result = sdf.format(calendar.getTime());
+        return result;
     }
 }
