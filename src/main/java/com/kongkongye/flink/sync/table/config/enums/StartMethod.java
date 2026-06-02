@@ -1,5 +1,6 @@
 package com.kongkongye.flink.sync.table.config.enums;
 
+import com.kongkongye.flink.sync.table.SafeTimestampOffsetsInitializer;
 import com.kongkongye.flink.sync.table.config.FromConfig;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
 import org.apache.kafka.clients.consumer.OffsetResetStrategy;
@@ -26,7 +27,7 @@ public enum StartMethod {
             case committedOffsets_earliest:
                 return OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST);
             case timestamp:
-                return OffsetsInitializer.timestamp(fromConfig.getStartMethodTimestamp());
+                return new SafeTimestampOffsetsInitializer(fromConfig.getStartMethodTimestamp());
             default:
                 throw new RuntimeException("unknown startMethod: " + this);
         }
