@@ -50,4 +50,28 @@ public class FilterConfigTest {
         Assert.assertFalse(config.match(null));
         Assert.assertTrue(config.match("x"));
     }
+
+    @Test
+    public void shouldMatchStartsWith() {
+        FilterConfig config = new FilterConfig();
+        config.setColumn("orderNo");
+        config.setOp("startsWith");
+        config.setValue("SD");
+        config.after();
+
+        Assert.assertTrue(config.match("SD20240601"));
+        Assert.assertFalse(config.match("WX20240601"));
+    }
+
+    @Test
+    public void shouldMatchNotStartsWith() {
+        FilterConfig config = new FilterConfig();
+        config.setColumn("orderNo");
+        config.setOp("notStartsWith");
+        config.setValue("SD");
+        config.after();
+
+        Assert.assertFalse(config.match("SD20240601"));
+        Assert.assertTrue(config.match("WX20240601"));
+    }
 }

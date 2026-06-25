@@ -55,6 +55,12 @@ public class FilterConfig implements Serializable {
         if ("in".equalsIgnoreCase(op)) {
             return valueSet.contains(actual);
         }
+        if ("startsWith".equalsIgnoreCase(op)) {
+            return actual.startsWith(String.valueOf(value));
+        }
+        if ("notStartsWith".equalsIgnoreCase(op)) {
+            return !actual.startsWith(String.valueOf(value));
+        }
         throw new RuntimeException("unsupported filter op: " + op);
     }
 }
