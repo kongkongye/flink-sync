@@ -3,3 +3,5 @@ target/
 .DS_Store
 ./dependency-reduced-pom.xml
 /src/main/resources/local/
+
+dependency-reduced-pom.xml
