@@ -1,0 +1,58 @@
+{
+  "from": {
+    "type": "kafka",
+    "bootstrapServers": "localhost:9092",
+    "topic": "local.demo.order_detail",
+    "startMethod": "earliest"
+  },
+  "to": {
+    "mode": "upsert",
+    "url": "jdbc:postgresql://localhost:5432/demo",
+    "username": "postgres",
+    "password": "postgres",
+    "schema": "public",
+    "table": "lens_detail",
+    "ids": "detail_id id",
+    "columns": "type detail_type,create_date create_dt,sku_code sku_no",
+    "filters": [
+      {
+        "column": "type",
+        "op": "eq",
+        "value": "lens"
+      },
+      {
+        "column": "deleted",
+        "op": "eq",
+        "value": 0
+      }
+    ],
+    "converters": [
+      {
+        "columns": "create_date",
+        "converter": "stringDatetime",
+        "config": {
+          "offset": 0,
+          "timezone": "UTC+8"
+        }
+      },
+      {
+        "columns": "type",
+        "converter": "valueMap",
+        "config": {
+          "mapping": {
+            "lens": "LENS"
+          }
+        }
+      },
+      {
+        "columns": "sku_code",
+        "converter": "defaultValue",
+        "config": {
+          "value": "UNKNOWN_SKU",
+          "applyOnNull": true,
+          "applyOnBlank": false
+        }
+      }
+    ]
+  }
+}

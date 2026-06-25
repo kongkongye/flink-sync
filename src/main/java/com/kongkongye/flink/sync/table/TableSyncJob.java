@@ -6,6 +6,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.kongkongye.flink.sync.table.config.AliasName;
 import com.kongkongye.flink.sync.table.config.ConverterConfig;
+import com.kongkongye.flink.sync.table.config.FilterConfig;
 import com.kongkongye.flink.sync.table.config.SyncConfig;
 import com.kongkongye.flink.sync.table.config.enums.FromType;
 import com.kongkongye.flink.sync.table.converter.Converter;
@@ -162,8 +163,10 @@ public class TableSyncJob {
 
         //2.1 转json
         DataStream<JSONObject> jsonStream = sourceStream.map(JSON::parseObject).name("转json");
+        //2.1.1 过滤
+        SingleOutputStreamOperator<JSONObject> filteredStream = jsonStream.filter(e -> matchFilters(config.getTo().getFilters(), e)).name("过滤");
         //2.2 转换值
-        SingleOutputStreamOperator<JSONObject> convertedStream = jsonStream.map(e -> {
+        SingleOutputStreamOperator<JSONObject> convertedStream = filteredStream.map(e -> {
             if (Objects.equals(e.getString("op"), "c") || Objects.equals(e.getString("op"), "r")) {//新增
                 JSONObject after = e.getJSONObject("after");
                 for (List<AliasName> list : Lists.newArrayList(config.getTo().getIdList(), config.getTo().getColumnList())) {
@@ -205,6 +208,26 @@ public class TableSyncJob {
         environment.execute("[表同步]" + file);
     }
 
+    static boolean matchFilters(List<FilterConfig> filters, JSONObject row) {
+        if (filters == null || filters.isEmpty()) {
+            return true;
+        }
+        JSONObject after = row.getJSONObject("after");
+        JSONObject before = row.getJSONObject("before");
+        for (FilterConfig filter : filters) {
+            Object actualValue = null;
+            if (after != null && after.containsKey(filter.getColumn())) {
+                actualValue = after.get(filter.getColumn());
+            } else if (before != null && before.containsKey(filter.getColumn())) {
+                actualValue = before.get(filter.getColumn());
+            }
+            if (!filter.match(actualValue)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private static Object convertValue(List<ConverterConfig> converters, String columnType, String fromColumn, Object value) {
         if (value == null) {
             return null;
@@ -220,7 +243,7 @@ public class TableSyncJob {
                     throw new RuntimeException("converter not found: " + converterConfig.getConverter());
                 }
                 //检测是否能处理
-                if (converter.canHandle(columnType, value)) {
+                if (converter.canHandle(converterConfig.getConfig(), columnType, value)) {
                     //转换
                     Object result = converter.convert(converterConfig.getConfig(), value);
                     log.debug("[convert]{}: {} --> {}", converter.name() + "|" + fromColumn, value, result);

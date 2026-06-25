@@ -27,6 +27,7 @@ public class ToConfig implements Serializable {
     private String ids;
     private String columns;
     private JSONObject extraParams;
+    private List<FilterConfig> filters = new ArrayList<>();
     private List<ConverterConfig> converters = new ArrayList<>();
 
     private List<AliasName> idList;
@@ -39,6 +40,13 @@ public class ToConfig implements Serializable {
     public void init() {
         idList = Arrays.stream(ids.split(",")).map(AliasName::of).collect(Collectors.toList());
         columnList = Arrays.stream(columns.split(",")).map(AliasName::of).collect(Collectors.toList());
+
+        if (filters == null) {
+            filters = new ArrayList<>();
+        }
+        for (FilterConfig filter : filters) {
+            filter.after();
+        }
 
         extraParamsMap = new HashMap<>();
         if (extraParams != null) {

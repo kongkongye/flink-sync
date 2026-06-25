@@ -110,6 +110,80 @@ json里可以配置converters参数来添加多个转换器，处理逻辑为按
 
 星号(`*`)代表匹配任意列名。
 
+#### filters过滤
+json里可以配置`to.filters`数组，数组内是`and`关系。
+
+目前支持的操作符：
+
+- `eq`
+- `ne`
+- `in`
+- `isNull`
+- `isNotNull`
+
+示例：
+
+``` json
+{
+  "to": {
+    "filters": [
+      { "column": "type", "op": "eq", "value": "lens" },
+      { "column": "deleted", "op": "eq", "value": 0 },
+      { "column": "remark", "op": "isNotNull" }
+    ]
+  }
+}
+```
+
+#### 新增转换器
+目前新增了两个更适合异构库字段转换的转换器：
+
+1. `stringDatetime`
+   - 适用于字符串数字时间戳转 `datetime/timestamp`
+2. `valueMap`
+   - 按配置映射值，例如 `lens -> LENS`
+3. `defaultValue`
+   - 字段为空或空字符串时补默认值
+   - 可通过配置控制只对 `null` 生效，或同时对空字符串生效
+
+示例：
+
+``` json
+{
+  "to": {
+    "converters": [
+      {
+        "columns": "create_date",
+        "converter": "stringDatetime",
+        "config": {
+          "offset": 0,
+          "timezone": "UTC+8"
+        }
+      },
+      {
+        "columns": "type",
+        "converter": "valueMap",
+        "config": {
+          "mapping": {
+            "lens": "LENS",
+            "frame": "FRAME"
+          }
+        }
+      },
+      {
+        "columns": "source_name",
+        "converter": "defaultValue",
+        "config": {
+          "value": "UNKNOWN",
+          "applyOnNull": true,
+          "applyOnBlank": false
+        }
+      }
+    ]
+  }
+}
+```
+
 ### sql同步
 这个很简单，用的是flink自带的sql功能。
 

@@ -42,11 +42,17 @@ public class PgsqlDialect extends AbstractJdbcDialect {
 
     @Override
     public String getColumnTypeSql(String columnName) {
-        return "SELECT DATA_TYPE\n" +
-                "FROM information_schema.COLUMNS\n" +
-                "WHERE\n" +
-                "     TABLE_NAME   = '" + config.getTo().getTable() + "' AND\n" +
-                "     COLUMN_NAME  = '" + columnName + "'";
+        String schema = config.getTo().getSchema();
+        StringBuilder sb = new StringBuilder();
+        sb.append("SELECT DATA_TYPE\n")
+                .append("FROM information_schema.COLUMNS\n")
+                .append("WHERE\n");
+        if (schema != null && !schema.trim().isEmpty()) {
+            sb.append("     TABLE_SCHEMA = '").append(schema).append("' AND\n");
+        }
+        sb.append("     TABLE_NAME   = '").append(config.getTo().getTable()).append("' AND\n")
+                .append("     COLUMN_NAME  = '").append(columnName).append("'");
+        return sb.toString();
     }
 
     @Override
